@@ -11,17 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('clone_cards', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('cart_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('card_number');
+            $table->date('expiry_date');
+            $table->string('status')->default('active');
+            $table->string('type')->default('credit'); // credit or debit
             $table->decimal('amount', 10, 2);
-            $table->string('payment_method'); // e.g., credit card, PayPal
-            // status
-            $table->string('status')->default('pending'); // pending, completed, failed
-            // payment_date
-            $table->timestamp('payment_date')->nullable();
-            $table->string('task')->default(0.3); // task for queue
+            $table->string('cardholder_name');
+            $table->string('cvv'); // cvv is sensitive, consider encrypting it in a real application
             $table->timestamps();
         });
     }
@@ -31,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        Schema::dropIfExists('clone_cards');
     }
 };

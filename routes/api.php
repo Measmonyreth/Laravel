@@ -7,8 +7,10 @@ use App\Http\Controllers\CartController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AddressController;
+use App\Http\Controllers\CloneCardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SaveController;
 use App\Http\Controllers\TextSearchController;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +49,8 @@ Route::post('cart',[CartController::class,'addToCart'])->middleware('auth:sanctu
 Route::get('viewCart',[CartController::class,'viewCart'])->middleware('auth:sanctum');
 Route::post('remove-cart-item/{proId}',[CartController::class,'removeFromCart'])->middleware('auth:sanctum');
 Route::post('cart/clear',[CartController::class,'clearCart'])->middleware('auth:sanctum');
+Route::post('cart/update',[CartController::class,'updateCart'])->middleware('auth:sanctum');
+Route::post('cart/checkout',[CartController::class,'checkoutCart'])->middleware('auth:sanctum');
 
 //addresses
 Route::post('address',[AddressController::class,'store'])->middleware('auth:sanctum');
@@ -71,3 +75,12 @@ Route::get('/saved-products',[SaveController::class,'getSavedProducts'])->middle
 Route::post('/text-search',[TextSearchController::class,'store'])->middleware('auth:sanctum');
 Route::get('/text-searches',[TextSearchController::class,'index']);
 Route::get('/text-searches/user',[TextSearchController::class,'showOfUser'])->middleware('auth:sanctum');
+
+// clone card
+Route::post('/clone-card',[CloneCardController::class,'store'])->middleware('auth:sanctum');
+Route::get('/clone-cards',[CloneCardController::class,'user'])->middleware('auth:sanctum');
+Route::put('/clone-card',[CloneCardController::class,'update'])->middleware('auth:sanctum');
+
+// payment
+Route::post('/payment',[PaymentController::class,'store'])->middleware('auth:sanctum');
+Route::get('/payment_user',[PaymentController::class,'getpayment'])->middleware('auth:sanctum');

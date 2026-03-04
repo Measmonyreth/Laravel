@@ -12,10 +12,10 @@ class CartController extends Controller
     public function addToCart(Request $request){
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
         ]);
-        
-        //get corrent user logged in 
+
+        //get corrent user logged in
         $user = $request->user();
         $cart = Cart::firstOrCreate([
             'user_id' => $user->id,
@@ -31,7 +31,7 @@ class CartController extends Controller
             $cart->items()->create([
                 'product_id' => $request->product_id,
                 'quantity' => $request->quantity,
-                'price' => $request->price,
+                'price' => $request->price * $request->quantity,
                 'cart_id' => $cart->id
             ]);
         }
@@ -67,7 +67,7 @@ class CartController extends Controller
         foreach($cartItems as $item){
             $total += $item->price;
             $count += $item->quantity;
-            
+
             $item->product->image = asset('storage/'.$item->product->image);
         }
         return response()->json([
@@ -114,11 +114,55 @@ class CartController extends Controller
         }
         CartItem::whereIn('cart_id',$cartIds)->delete();
         Cart::where('user_id',$user->id)->where('status','active')->delete();
-       
+
         return response()->json([
             'message' => 'Cart cleared successfully'
         ], 200);
+    }
 
+    public function updateCart(Request $request){
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1'
+        ]);
+        $user = Auth::user();
+        $cart = Cart::where('user_id',$user->id)->where('status','active')->first();
+        if($cart == null){
+            return response()->json([
+                'message' => 'Cart is empty'
+            ], 404);
+        }
+        $cartItem = $cart->items()->where('product_id',$request->product_id)->first();
+        if($cartItem == null){
+            return response()->json([
+                'message' => 'Product not found in cart'
+            ], 404);
+        }
+        $cartItem->quantity = $request->quantity;
+        $cartItem->price = $request->price * $request->quantity;
+        $cartItem->save();
+        $cart->total = $cart->items()->sum('price');
+        $cart->save();
+        return response()->json([
+            'message' => 'Cart updated successfully',
+            'cart' => $cart->load('items.product')
+        ], 200);
+    }
 
+    // after checkout, update cart status to completed
+    public function checkoutCart(Request $request){
+        $user = Auth::user();
+        $cart = Cart::where('user_id',$user->id)->where('status','active')->first();
+        if($cart == null){
+            return response()->json([
+                'message' => 'Cart is empty'
+            ], 404);
+        }
+        $cart->status = 'completed';
+        $cart->save();
+        return response()->json([
+            'message' => 'Cart checked out successfully',
+            'cart' => $cart->load('items.product')
+        ], 200);
     }
 }

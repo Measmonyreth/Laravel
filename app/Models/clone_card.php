@@ -5,26 +5,21 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Payment extends Model
+class clone_card extends Model
 {
-    /** @use HasFactory<\Database\Factories\PaymentFactory> */
+    /** @use HasFactory<\Database\Factories\CloneCardFactory> */
     use HasFactory;
 
     protected $fillable = [
-        'cart_id',
         'user_id',
+        'card_number',
+        'expiry_date',
         'amount',
-        'payment_method',
+        'cardholder_name',
+        'cvv',
         'status',
-        'payment_date',
         'type',
-        'status',
     ];
-
-    public function cart()
-    {
-        return $this->belongsTo(Cart::class, 'cart_id');
-    }
 
     public function user()
     {

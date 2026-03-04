@@ -42,6 +42,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(TextSearch::class, 'user_id');
     }
 
+    public function cloneCards()
+    {
+        return $this->hasOne(clone_card::class, 'user_id');
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
