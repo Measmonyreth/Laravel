@@ -137,10 +137,18 @@ class ProductController extends Controller
             'max_price' => 'numeric',
         ]);
 
-        $name = $request->name;
-        $min_price = $request->min_price;
-        $max_price = $request->max_price;
-        $products = Product::where('name', 'like', '%' . $name . '%')
+        $name = trim($request->name);
+        $min_price =trim($request->min_price);
+        $max_price = trim($request->max_price);
+
+        if (empty($name) && empty($min_price) && empty($max_price)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'At least one search parameter is required'
+            ], 400);
+        }
+
+        $products = Product::whereRaw('name LIKE ?', ['%' . $name . '%'])
             ->when($min_price, function ($query) use ($min_price) {
                 return $query->where('price', '>=', $min_price);
             })
