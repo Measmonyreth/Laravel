@@ -47,6 +47,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(clone_card::class, 'user_id');
     }
 
+    public function seen_notifications()
+    {
+        return $this->hasMany(User_Notification_General::class, 'user_id');
+    }
+
+
+
     /**
      * The attributes that should be hidden for serialization.
      *

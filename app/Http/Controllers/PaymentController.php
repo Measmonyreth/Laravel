@@ -53,7 +53,7 @@ class PaymentController extends Controller
         // 1. Validate first, before any auth or logic checks
         $validated = $request->validate([
             'cart_id' => 'required|integer|exists:carts,id',
-            'payment_method' => 'required|string|in:credit_card,debit_card,paypal,cash,master_card,visa',
+            'payment_method' => 'required|string|in:credit_card,debit_card,master_card,visa',
             'task' => 'nullable|numeric|min:0|max:1',
 
         ]);

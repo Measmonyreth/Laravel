@@ -10,9 +10,11 @@ use App\Http\Controllers\AddressController;
 use App\Http\Controllers\CloneCardController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NotificationGeneralController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\SaveController;
 use App\Http\Controllers\TextSearchController;
+use App\Http\Controllers\UserNotificationGeneralController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/user', function (Request $request) {
@@ -63,7 +65,7 @@ Route::post('order',[OrderController::class,'store'])->middleware('auth:sanctum'
 Route::get('orders',[OrderController::class,'index'])->middleware('auth:sanctum');
 Route::post('order/checkout',[OrderController::class,'checkout'])->middleware('auth:sanctum');
 
-Route::post('/send-notification', [NotificationController::class, 'sendNotification']);
+Route::post('/send-notification', [NotificationController::class, 'sendToUser']);
 Route::post('/send-notification-topic', [NotificationController::class, 'sendToTopic']);
 
 //save products
@@ -84,3 +86,14 @@ Route::put('/clone-card',[CloneCardController::class,'update'])->middleware('aut
 // payment
 Route::post('/payment',[PaymentController::class,'store'])->middleware('auth:sanctum');
 Route::get('/payment_user',[PaymentController::class,'getpayment'])->middleware('auth:sanctum');
+
+
+// notification general
+Route::post('/notification-general',[NotificationGeneralController::class,'store']);
+Route::get('/notification-generals',[NotificationGeneralController::class,'index']);
+Route::get('/notification-general_show/{id}',[NotificationGeneralController::class,'show']);
+Route::post("/update-notification-status/{id}", [NotificationGeneralController::class, 'update']);
+
+// user notification general
+Route::post('/user-notification-general',[UserNotificationGeneralController::class,'store'])->middleware('auth:sanctum');
+Route::get('/user-notifications',[UserNotificationGeneralController::class,'getUserNotifications'])->middleware('auth:sanctum');

@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Product;
-use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
+use App\Models\Product;
 use App\Services\FCMService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -16,6 +16,7 @@ class ProductController extends Controller
     {
         $this->fcmService = $fcmService;
     }
+
     public function store(Request $request)
     {
 
@@ -25,7 +26,7 @@ class ProductController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric',
             // 'is_featured' => 'boolean',
-            'category_id' => 'required|exists:categories,id'
+            'category_id' => 'required|exists:categories,id',
         ]);
 
         // dd($request->file('image'));
@@ -41,8 +42,9 @@ class ProductController extends Controller
             'price' => $request->price,
             'image' => $imagePath,
             'is_featured' => $request->is_featured,
-            'category_id' => $request->category_id
+            'category_id' => $request->category_id,
         ]);
+
         //    $this->fcmService->sendToTopic(
         //     "all",
         //     "New Product Added: " . $request->name,
@@ -54,8 +56,8 @@ class ProductController extends Controller
         // );
         return response()->json(
             [
-                'message' => "Product created successfully",
-                'product' => $product
+                'message' => 'Product created successfully',
+                'product' => $product,
             ],
             200
         );
@@ -66,7 +68,7 @@ class ProductController extends Controller
         $categories = Category::with([
             'products' => function ($query) {
                 $query->select('id', 'name', 'description', 'price', 'image', 'is_featured', 'category_id');
-            }
+            },
         ])->latest()->get(['id', 'name']);
 
         // group products by category
@@ -80,10 +82,10 @@ class ProductController extends Controller
                         'name' => $product->name,
                         'description' => $product->description,
                         'price' => $product->price,
-                        'image' => asset($product->image) ? asset('storage/' . $product->image) : null,
-                        'is_featured' => $product->is_featured
+                        'image' => asset($product->image) ? asset('storage/'.$product->image) : null,
+                        'is_featured' => $product->is_featured,
                     ];
-                })
+                }),
             ];
         });
         // get featured products
@@ -95,26 +97,28 @@ class ProductController extends Controller
                 'name' => $product->name,
                 'description' => $product->description,
                 'price' => $product->price,
-                'image' => asset($product->image) ? asset('storage/' . $product->image) : null
+                'image' => asset($product->image) ? asset('storage/'.$product->image) : null,
             ];
         });
+
         return response()->json([
             'success' => true,
             'categories' => $categories,
-            'featuredProducts' => $featuredProducts
+            'featuredProducts' => $featuredProducts,
         ]);
     }
 
     public function getProductByCate($cateId)
     {
-        $category  = Category::find($cateId);
-        if (!$category) {
+        $category = Category::find($cateId);
+        if (! $category) {
             return response()->json([
                 'success' => false,
-                'message' => 'Category not found'
+                'message' => 'Category not found',
             ], 404);
         }
         $products = $category->products()->paginate(10, ['id', 'name', 'description', 'price', 'image']);
+
         return response()->json($products);
 
         // $products = $products->map(function($product){
@@ -136,19 +140,10 @@ class ProductController extends Controller
             'min_price' => 'numeric',
             'max_price' => 'numeric',
         ]);
-
-        $name = trim($request->name);
-        $min_price =trim($request->min_price);
-        $max_price = trim($request->max_price);
-
-        if (empty($name) && empty($min_price) && empty($max_price)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'At least one search parameter is required'
-            ], 400);
-        }
-
-        $products = Product::whereRaw('name LIKE ?', ['%' . $name . '%'])
+        $name = $request->name;
+        $min_price = $request->min_price;
+        $max_price = $request->max_price;
+        $products = Product::where('name', 'like', '%'.$name.'%')
             ->when($min_price, function ($query) use ($min_price) {
                 return $query->where('price', '>=', $min_price);
             })
@@ -163,7 +158,7 @@ class ProductController extends Controller
                 'name' => $product->name,
                 'description' => $product->description,
                 'price' => $product->price,
-                'image' => asset($product->image) ? asset('storage/' . $product->image) : null
+                'image' => asset($product->image) ? asset('storage/'.$product->image) : null,
             ];
         });
 
