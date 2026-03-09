@@ -13,6 +13,7 @@ class TextSearch extends Model
     protected $fillable = [
         'text',
         'user_id',
+        'status'
     ];
 
     public function user()

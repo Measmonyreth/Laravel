@@ -45,7 +45,8 @@ class NotificationController extends Controller
             'topic' => 'required|string',
             'title' => 'required|string',
             'body' => 'required|string',
-            'image' => 'nullable|url',       // ✅ Add image validation
+           // 'large_image' => 'nullable|url',       // ✅ Add image validation
+            'big_image' => 'nullable|url',       // ✅ Add image validation
         ]);
 
         $response = $this->fcmService->sendToTopic(
@@ -57,19 +58,20 @@ class NotificationController extends Controller
                 'type' => $request->type ?? 'general',
                 'title' => $request->title,
                 'body' => $request->body,
-                'image' => $request->image ?? null,
+                'large_image' => $request->large_image ?? null,
+                'big_image' => $request->big_image ?? null,
             ],
             $request->image ?? null          // ✅ Pass image URL
         );
 
         $pathSmallImage = null;
         $pathLargeImage = null;
-        if ($request->hasFile('image')) {
-            $img = $request->file('image');
+        if ($request->hasFile('large_image')) {
+            $img = $request->file('large_image');
             $pathSmallImage = Storage::disk('public')->put('notifications', $img);
 
-        } elseif ($request->filled('image')) {
-            $url = $request->image;
+        } elseif ($request->filled('large_image')) {
+            $url = $request->large_image;
             $contents = file_get_contents($url);
             $extension = pathinfo($url, PATHINFO_EXTENSION) ?: 'jpg';
             $filename = 'notifications/'.uniqid().'.'.$extension;
@@ -77,12 +79,12 @@ class NotificationController extends Controller
             $pathSmallImage = $filename; // ✅ Store relative path only
         }
 
-        if ($request->hasFile('large_image')) {
-            $img = $request->file('large_image');
+        if ($request->hasFile('big_image')) {
+            $img = $request->file('big_image');
             $pathLargeImage = Storage::disk('public')->put('notifications', $img);
 
-        } elseif ($request->filled('large_image')) {
-            $url = $request->large_image;
+        } elseif ($request->filled('big_image')) {
+            $url = $request->big_image;
             $contents = file_get_contents($url);
             $extension = pathinfo($url, PATHINFO_EXTENSION) ?: 'jpg';
             $filename = 'notifications/'.uniqid().'.'.$extension;
@@ -93,8 +95,8 @@ class NotificationController extends Controller
         $notification = NotificationGeneral::create([
             'title' => $request->title,
             'body' => $request->body,
-            'small_image' => $pathSmallImage ?? null,
-            'large_image' => $pathLargeImage ?? null,
+            'big_image' => $pathLargeImage ?? null,
+            'large_image' => $pathSmallImage ?? null,
             'route' => $request->route,
             'type' => $request->type,
         ]);

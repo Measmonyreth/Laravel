@@ -64,20 +64,45 @@ class NotificationGeneralController extends Controller
     public function index()
     {
         $notifications = NotificationGeneral::all();
+        $count = NotificationGeneral::count();
 
         return response()->json(
             [
-                'notifications' => $notifications,
+                'notifications' => $notifications->map(function ($notification) {
+                    return [
+                        'id' => $notification->id,
+                        'title' => $notification->title,
+                        'body' => $notification->body,
+                        'large_image' => asset($notification->large_image) ? asset('storage/'.$notification->large_image) : null,
+                        'big_image' => asset($notification->big_image) ? asset('storage/'.$notification->big_image) : null,
+                        'route' => $notification->route,
+                        'type' => $notification->type,
+                    ];
+                }),
+                'count' => $count,
             ],
             200
         );
+
+            // return response()->json([
+            //     'notifications' => $notifications,
+            //     'count' => $count,
+            // ], 200);
     }
 
     public function show($id)
     {
         $notification = NotificationGeneral::findOrFail($id);
 
-        return response()->json($notification);
+        return response()->json([
+            'id' => $notification->id,
+            'title' => $notification->title,
+            'body' => $notification->body,
+            'large_image' => $notification->large_image ? asset('storage/'.$notification->large_image) : null,
+            'big_image' => $notification->big_image ? asset('storage/'.$notification->big_image) : null,
+            'route' => $notification->route,
+            'type' => $notification->type,
+        ]);
     }
 
     public function update($id, Request $request)

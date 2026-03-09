@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\FCMService;
@@ -33,14 +35,13 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imagePath = Storage::disk('public')->put('products', $image);
-            $request->image = $imagePath;
         }
 
         $product = Product::create([
             'name' => $request->name,
             'description' => $request->description,
             'price' => $request->price,
-            'image' => $imagePath,
+            'image' => $imagePath, // store relative path in DB
             'is_featured' => $request->is_featured,
             'category_id' => $request->category_id,
         ]);
@@ -54,13 +55,13 @@ class ProductController extends Controller
         //         "body"=> "A new product has been added to the store: " . $request->name,
         //     ]
         // );
-        return response()->json(
-            [
-                'message' => 'Product created successfully',
-                'product' => $product,
+        return response()->json([
+            'message' => 'Product created successfully',
+            'product' => [
+                ...$product->toArray(),
+                'image' => $imagePath ? asset('storage/'.$imagePath) : null, // ← full URL
             ],
-            200
-        );
+        ], 200);
     }
 
     public function index()
@@ -69,13 +70,14 @@ class ProductController extends Controller
             'products' => function ($query) {
                 $query->select('id', 'name', 'description', 'price', 'image', 'is_featured', 'category_id');
             },
-        ])->latest()->get(['id', 'name']);
+        ])->latest()->get(['id', 'name', 'image']);
 
         // group products by category
         $categories = $categories->map(function ($category) {
             return [
                 'id' => $category->id,
                 'name' => $category->name,
+                'image' => $category->image ? asset('storage/'.$category->image) : null,
                 'products' => $category->products->map(function ($product) {
                     return [
                         'id' => $product->id,
@@ -89,7 +91,7 @@ class ProductController extends Controller
             ];
         });
         // get featured products
-        $featuredProducts = Product::where('is_featured', 1)->limit(5)->get(['id', 'name', 'description', 'price', 'image']);
+        $featuredProducts = Product::where('is_featured', 1)->latest()->limit(5)->get(['id', 'name', 'description', 'price', 'image']);
 
         $featuredProducts = $featuredProducts->map(function ($product) {
             return [
@@ -163,5 +165,39 @@ class ProductController extends Controller
         });
 
         return response()->json($products);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $product = Product::find($id);
+        if (! $product) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Product not found',
+            ], 404);
+        }
+        $product->update($request->all());
+
+        if ($request->has('price')) {
+            $cartItems = CartItem::where('product_id', $id)->get();
+
+            foreach ($cartItems as $item) {
+                $item->update(['price' => $request->price]);
+
+                // Recalculate total for each affected cart
+                $newTotal = CartItem::where('cart_id', $item->cart_id)
+                    ->get()
+                    ->sum(fn ($i) => $i->price * $i->quantity);
+
+                Cart::where('id', $item->cart_id)
+                    ->update(['total' => $newTotal]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product updated successfully',
+            'product' => $product,
+        ], 200);
     }
 }

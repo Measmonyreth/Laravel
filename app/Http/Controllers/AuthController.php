@@ -16,6 +16,7 @@ class AuthController extends Controller
                 'name' => 'required|string|max:255',
                 'email' => 'required|string|email|unique:users',
                 'password' => 'required|string|min:6',
+                'role' => 'sometimes|string',
             ]
         );
 
@@ -32,6 +33,7 @@ class AuthController extends Controller
                 'address' => $request->address,
                 'cityOrProvince' => $request->cityOrProvince,
                 'country' => $request->country,
+                'role' => $request->role ?? 'user',
                 'sex' => $request->sex,
                 'password' => Hash::make($request->password),
                 'avatar' => $request->avatar,
@@ -86,15 +88,21 @@ class AuthController extends Controller
 
     public function update(Request $request)
     {
-        $user = $request->user(); // get the authenticated user
+        $user = $request->user();
+        if (! $user) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
         if ($request->hasFile('avatar')) {
             $image = $request->file('avatar');
             $path = Storage::disk('public')->put('users', $image);
 
-            if ($user->avatar && Storage::disk('public')->fileExists($user->avatar)) {
+            if ($user->avatar && Storage::disk('public')->exists($user->avatar)) {
                 Storage::disk('public')->delete($user->avatar);
             }
-            $user->avatar = $path;
+
         }
 
         if ($request->password) {
@@ -102,12 +110,15 @@ class AuthController extends Controller
         }
 
         $data = array_filter([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'phone' => $request->input('phone'),
-            'address' => $request->input('address'),
-            'country' => $request->input('country'),
-            'sex' => $request->input('sex'),
+            'name' => $request->input('name') ?? $user->name,
+            'email' => $request->input('email') ?? $user->email,
+            'phone' => $request->input('phone') ?? $user->phone,
+            'address' => $request->input('address') ?? $user->address,
+            'country' => $request->input('country') ?? $user->country,
+            'cityOrProvince' => $request->input('cityOrProvince') ?? $user->cityOrProvince,
+            'role' => $request->input('role') ?? $user->role,
+            'sex' => $request->input('sex') ?? $user->sex,
+            'avatar' => $path ?? $user->avatar,
         ], fn ($value) => $value !== null); // ← skip null values
 
         $user->update($data);
@@ -127,5 +138,24 @@ class AuthController extends Controller
         return response()->json([
             'user' => $user,
         ]);
+    }
+
+    public function getAllUsers(Request $request)
+    {
+        $main_user = auth('sanctum')->user();
+        if (! $main_user) {
+            return response()->json([
+                'message' => 'Unauthorized',
+            ], 401);
+        } else {
+            $users = User::all();
+            foreach ($users as $user) {
+                $user->avatar = $user->avatar ? asset('storage/'.$user->avatar) : null;
+            }
+
+            return response()->json([
+                'users' => $users,
+            ]);
+        }
     }
 }

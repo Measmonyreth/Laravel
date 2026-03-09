@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('body');
-            $table->string('small_image')->nullable(); // ✅ Add image column
             $table->string('large_image')->nullable(); // ✅ Add image column
+            $table->string('big_image')->nullable(); // ✅ Add image column
             $table->string('route');
             $table->string('type');
             $table->timestamps();

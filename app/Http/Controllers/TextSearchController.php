@@ -27,6 +27,7 @@ class TextSearchController extends Controller
         $textSearch = TextSearch::create([
             'text' => $request->text,
             'user_id' => auth()->id(),
+            'status' => 'active'
         ]);
 
         return response()->json([
@@ -60,6 +61,23 @@ class TextSearchController extends Controller
         return response()->json([
             'message' => 'Text searches retrieved successfully',
             'data' => $textSearches
+        ], 200);
+    }
+
+    public function delete(Request $request, $id)
+    {
+        $textSearch = TextSearch::where('user_id', auth()->id())->where('id', $id)->first();
+        if(!$textSearch) {
+            return response()->json([
+                'message' => 'Text search not found',
+            ], 404);
+        }
+        $textSearch->update([
+            'status' => 'deleted'
+        ]);
+        return response()->json([
+            'message' => 'Text search deleted successfully',
+            'data' => $textSearch
         ], 200);
     }
 }

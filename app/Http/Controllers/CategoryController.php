@@ -13,17 +13,15 @@ class CategoryController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
-        $path = null;
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $path = Storage::disk('public')->put('categories', $image);
-            $request->image = $path;
         }
 
         $category = Category::create([
             'name' => $request->input('name'),
             'description' => $request->input('description'),
-            'image' => $path,
+            'image' => $path ?? null,
         ]);
 
         return response()->json(
@@ -58,10 +56,15 @@ class CategoryController extends Controller
     public function index()
     {
         $categories = Category::all();
+        // Add image URL to each category
+        foreach ($categories as $category) {
+            $category->image = $category->image ? asset('storage/'.$category->image) : null;
+        }
 
         return response()->json([
             'success' => true,
             'data' => $categories,
+
         ]);
     }
 

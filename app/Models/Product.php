@@ -9,13 +9,14 @@ class Product extends Model
 {
     /** @use HasFactory<\Database\Factories\ProductFactory> */
     use HasFactory;
+
     protected $fillable = [
         'name',
         'description',
         'price',
         'image',
         'is_featured',
-        'category_id'
+        'category_id',
     ];
 
     public function category()
@@ -26,5 +27,14 @@ class Product extends Model
     public function saves()
     {
         return $this->hasMany(Save::class);
+    }
+
+    protected $appends = ['image_url'];
+
+    public function getImageUrlAttribute()
+    {
+        return $this->image
+            ? asset('storage/'.$this->image)
+            : null;
     }
 }

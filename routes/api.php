@@ -32,7 +32,7 @@ Route::post('login',[AuthController::class,'login']);
 Route::post('logout',[AuthController::class,'logout'])->middleware('auth:sanctum');
 Route::post('/user/update',[AuthController::class,'update'])->middleware('auth:sanctum');
 Route::get('user/get',[AuthController::class,'getUser'])->middleware('auth:sanctum');
-
+Route::get('users',[AuthController::class,'getAllUsers'])->middleware('auth:sanctum');
 //categories
 
 Route::get('categories',[CategoryController::class,'index']);
@@ -45,6 +45,7 @@ Route::post('product',[ProductController::class,'store']);
 Route::get('products',[ProductController::class,'index']);
 Route::get('product-cate/{id}',[ProductController::class,'getProductByCate']);
 Route::get('product-search',[ProductController::class,'search']);
+Route::post('product/{id}',[ProductController::class,'update']);
 
 //carts
 Route::post('cart',[CartController::class,'addToCart'])->middleware('auth:sanctum');
@@ -77,6 +78,7 @@ Route::get('/saved-products',[SaveController::class,'getSavedProducts'])->middle
 Route::post('/text-search',[TextSearchController::class,'store'])->middleware('auth:sanctum');
 Route::get('/text-searches',[TextSearchController::class,'index']);
 Route::get('/text-searches/user',[TextSearchController::class,'showOfUser'])->middleware('auth:sanctum');
+Route::delete('/text-search/{id}',[TextSearchController::class,'delete'])->middleware('auth:sanctum');
 
 // clone card
 Route::post('/clone-card',[CloneCardController::class,'store'])->middleware('auth:sanctum');
@@ -97,3 +99,4 @@ Route::post("/update-notification-status/{id}", [NotificationGeneralController::
 // user notification general
 Route::post('/user-notification-general',[UserNotificationGeneralController::class,'store'])->middleware('auth:sanctum');
 Route::get('/user-notifications',[UserNotificationGeneralController::class,'getUserNotifications'])->middleware('auth:sanctum');
+Route::get('/all-user-seen-notifications',[UserNotificationGeneralController::class,'getAllUserSeenNotifications']);

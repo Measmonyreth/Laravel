@@ -50,8 +50,10 @@ return [
              *
              */
 
-            'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
-
+          //  'credentials' => env('FIREBASE_CREDENTIALS', env('GOOGLE_APPLICATION_CREDENTIALS')),
+'credentials' => [
+        'file' => storage_path('app/firebase/category-store-firebase-adminsdk-fbsvc-579b2ca8c3.json'),
+    ],
             /*
              * ------------------------------------------------------------------------
              * Firebase Auth Component
